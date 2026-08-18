@@ -17,29 +17,29 @@ NrpnToCcEditor::NrpnToCcEditor (NrpnToCcProcessor& p)
     titleLabel.setJustificationType (juce::Justification::centred);
     addAndMakeVisible (titleLabel);
 
-    // --- Canale ingresso ---
-    setupLabel (inLabel, "Canale ingresso");
-    inputChannelBox.addItem ("Omni (tutti)", 1);
+    // --- Input channel ---
+    setupLabel (inLabel, "Input channel");
+    inputChannelBox.addItem ("Omni (all)", 1);
     for (int i = 1; i <= 16; ++i)
         inputChannelBox.addItem (juce::String (i), i + 1);
     addAndMakeVisible (inputChannelBox);
 
-    // --- Canale uscita ---
-    setupLabel (outLabel, "Canale uscita");
-    outputChannelBox.addItem ("Come ingresso", 1);
+    // --- Output channel ---
+    setupLabel (outLabel, "Output channel");
+    outputChannelBox.addItem ("Same as input", 1);
     for (int i = 1; i <= 16; ++i)
         outputChannelBox.addItem (juce::String (i), i + 1);
     addAndMakeVisible (outputChannelBox);
 
-    // --- Formato uscita ---
-    setupLabel (modeLabel, "Formato uscita");
-    valueModeBox.addItem ("7 bit auto-range", 1);
-    valueModeBox.addItem ("7 bit scala fissa", 2);
-    valueModeBox.addItem ("14 bit (MSB+LSB)", 3);
+    // --- Output format ---
+    setupLabel (modeLabel, "Output format");
+    valueModeBox.addItem ("7-bit auto-range", 1);
+    valueModeBox.addItem ("7-bit fixed scale", 2);
+    valueModeBox.addItem ("14-bit (MSB+LSB)", 3);
     addAndMakeVisible (valueModeBox);
 
-    // --- Max per la "scala fissa" ---
-    setupLabel (maxLabel, "Max (scala fissa)");
+    // --- Max for "fixed scale" ---
+    setupLabel (maxLabel, "Max (fixed scale)");
     inputMaxSlider.setSliderStyle (juce::Slider::IncDecButtons);
     inputMaxSlider.setTextBoxStyle (juce::Slider::TextBoxLeft, false, 90, 22);
     inputMaxSlider.setRange (1.0, 16383.0, 1.0);
@@ -62,9 +62,9 @@ NrpnToCcEditor::NrpnToCcEditor (NrpnToCcProcessor& p)
     dedupeAtt = std::make_unique<ButtonAttach> (proc.apvts, "dedupe",        dedupeButton);
 
     // Nota informativa sul routing delle porte
-    infoLabel.setText ("Mappatura automatica: numero NRPN -> numero CC.\n"
-                       "Auto-range: impara il max di ogni parametro e scala su 0-127.\n"
-                       "Fai una passata completa di ogni manopola per calibrarla (viene ricordata).",
+    infoLabel.setText ("Automatic mapping: NRPN number -> CC number.\n"
+                       "Auto-range: learns each parameter's max and scales to 0-127.\n"
+                       "Do one full sweep of each knob to calibrate it (it is remembered).",
                        juce::dontSendNotification);
     infoLabel.setJustificationType (juce::Justification::topLeft);
     infoLabel.setFont (juce::Font (juce::FontOptions{}.withHeight (12.0f)));
@@ -79,7 +79,7 @@ NrpnToCcEditor::NrpnToCcEditor (NrpnToCcProcessor& p)
     monitorText.setJustificationType (juce::Justification::topLeft);
     monitorText.setFont (juce::Font (juce::FontOptions{}.withName (juce::Font::getDefaultMonospacedFontName()).withHeight (13.0f)));
     monitorText.setColour (juce::Label::backgroundColourId, juce::Colours::black.withAlpha (0.25f));
-    monitorText.setText ("In attesa di messaggi NRPN...", juce::dontSendNotification);
+    monitorText.setText ("Waiting for NRPN messages...", juce::dontSendNotification);
     addAndMakeVisible (monitorText);
 
     addAndMakeVisible (ccMeter);
@@ -171,14 +171,14 @@ void NrpnToCcEditor::updateMonitorText()
 
     if (param < 0)
     {
-        monitorText.setText ("In attesa di messaggi NRPN...", juce::dontSendNotification);
+        monitorText.setText ("Waiting for NRPN messages...", juce::dontSendNotification);
         return;
     }
 
     juce::String t;
     t << "IN   NRPN #" << param
       << "  val=" << value
-      << (is14 ? "  (14 bit)" : "  (valore reale)")
+      << (is14 ? "  (14-bit)" : "  (raw value)")
       << "  ch=" << inCh << "\n";
 
     t << "OUT  CC #" << ccNum << " = " << ccVal

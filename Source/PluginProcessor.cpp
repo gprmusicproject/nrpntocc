@@ -27,38 +27,38 @@ juce::AudioProcessorValueTreeState::ParameterLayout NrpnToCcProcessor::createLay
     using namespace juce;
     AudioProcessorValueTreeState::ParameterLayout layout;
 
-    // Canale di ingresso: indice 0 = Omni (tutti), 1..16 = canale specifico.
+    // Input channel: index 0 = Omni (all), 1..16 = specific channel.
     StringArray inChoices;
-    inChoices.add ("Omni (tutti)");
+    inChoices.add ("Omni (all)");
     for (int i = 1; i <= 16; ++i) inChoices.add (String (i));
 
-    // Canale di uscita: indice 0 = "Come ingresso", 1..16 = canale specifico.
+    // Output channel: index 0 = "Same as input", 1..16 = specific channel.
     StringArray outChoices;
-    outChoices.add ("Come ingresso");
+    outChoices.add ("Same as input");
     for (int i = 1; i <= 16; ++i) outChoices.add (String (i));
 
     layout.add (std::make_unique<AudioParameterChoice> (
-        ParameterID { "inputChannel", 1 }, "Canale ingresso", inChoices, 0));
+        ParameterID { "inputChannel", 1 }, "Input channel", inChoices, 0));
 
     layout.add (std::make_unique<AudioParameterChoice> (
-        ParameterID { "outputChannel", 1 }, "Canale uscita", outChoices, 0));
+        ParameterID { "outputChannel", 1 }, "Output channel", outChoices, 0));
 
-    // 0 = 7 bit auto-range: impara il max per ogni parametro e scala a 0-127.
-    // 1 = 7 bit scala fissa: scala usando "inputMax".
-    // 2 = 14 bit: emette MSB su CC#n e LSB su CC#n+32.
+    // 0 = 7-bit auto-range: learns the max per parameter and scales to 0-127.
+    // 1 = 7-bit fixed scale: scales using "inputMax".
+    // 2 = 14-bit: emits MSB on CC#n and LSB on CC#n+32.
     layout.add (std::make_unique<AudioParameterChoice> (
-        ParameterID { "valueMode", 1 }, "Formato uscita",
-        StringArray { "7 bit auto-range", "7 bit scala fissa", "14 bit (MSB+LSB)" }, 0));
+        ParameterID { "valueMode", 1 }, "Output format",
+        StringArray { "7-bit auto-range", "7-bit fixed scale", "14-bit (MSB+LSB)" }, 0));
 
-    // Massimo usato SOLO in "scala fissa" per portare il valore a 0-127.
+    // Maximum used ONLY in "fixed scale" mode to bring the value to 0-127.
     layout.add (std::make_unique<AudioParameterInt> (
-        ParameterID { "inputMax", 1 }, "Max (scala fissa)", 1, 16383, 255));
+        ParameterID { "inputMax", 1 }, "Max (fixed scale)", 1, 16383, 255));
 
     layout.add (std::make_unique<AudioParameterBool> (
-        ParameterID { "passthrough", 1 }, "Passthrough NRPN originali", false));
+        ParameterID { "passthrough", 1 }, "Pass through original NRPN", false));
 
     layout.add (std::make_unique<AudioParameterBool> (
-        ParameterID { "dedupe", 1 }, "Filtra CC ripetuti", true));
+        ParameterID { "dedupe", 1 }, "Filter repeated CC", true));
 
     return layout;
 }

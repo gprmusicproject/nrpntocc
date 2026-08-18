@@ -58,9 +58,9 @@ private:
     juce::Label inLabel, outLabel, modeLabel, maxLabel;
     juce::ComboBox inputChannelBox, outputChannelBox, valueModeBox;
     juce::Slider inputMaxSlider;
-    juce::ToggleButton passthroughButton { "Passthrough NRPN originali" };
-    juce::ToggleButton dedupeButton { "Filtra CC ripetuti" };
-    juce::TextButton   resetLearnButton { "Reset apprendimento" };
+    juce::ToggleButton passthroughButton { "Pass through original NRPN" };
+    juce::ToggleButton dedupeButton { "Filter repeated CC" };
+    juce::TextButton   resetLearnButton { "Reset learning" };
 
     juce::Label infoLabel;
     juce::Label monitorTitle;
