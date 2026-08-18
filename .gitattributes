@@ -1,0 +1,17 @@
+# Normalizza i fine-riga: nel repository i file di testo sono salvati con LF.
+* text=auto
+
+# File di testo del progetto (LF nel repo)
+*.h        text
+*.cpp      text
+*.txt      text
+*.md       text
+*.cmake    text
+CMakeLists.txt text
+.gitignore text
+LICENSE    text
+
+# File binari (mai convertiti)
+*.zip      binary
+*.vst3     binary
+*.png      binary
