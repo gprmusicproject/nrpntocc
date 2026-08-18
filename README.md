@@ -1,4 +1,4 @@
-# NRPN to CC — VST3 (MIDI instrument for Cubase)
+# NRPN to CC — VST3 
 
 A VST3 plugin (VST3 only) of type **instrument (VSTi)** that receives MIDI, **passes through**
 everything that is not NRPN, and **converts NRPN messages into CC**, sending the result to its
