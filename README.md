@@ -40,6 +40,29 @@ MIDI output.
 
 ---
 
+## Usage scenario
+
+The screenshot below shows the typical setup in Cubase Pro:
+
+![NRPN to CC — usage scenario in Cubase](Res/Screenshot.png)
+
+1. Create an **instrument track** and load **NRPN to CC** on it (*NRPN to CC 01* in the
+   screenshot). Set this track's **MIDI input** to the instrument/controller whose NRPN messages
+   you want to translate (e.g. your hardware synth, or "All MIDI Inputs"), and enable input
+   monitoring so the MIDI reaches the plugin.
+2. Create a **second track** hosting the **target instrument** — another virtual instrument
+   (VSTi) or an external device (*OB-Xtrm3 01* in the screenshot).
+3. Set the **target track's MIDI input** to **NRPN to CC**'s MIDI output. The signal flow becomes:
+   `source → NRPN to CC → target instrument`.
+4. Non-NRPN messages pass through untouched; NRPN messages are converted to CC (in the screenshot
+   NRPN #45 → CC #45), so the target instrument receives standard CC it can map or MIDI-learn. The
+   **Monitor** shows the live conversion.
+
+This example uses Cubase, but the **same approach works in any DAW**: host NRPN to CC as an
+instrument, feed it the source MIDI, and route its MIDI output to the target instrument/track.
+
+---
+
 ## Prerequisites (Windows)
 
 You need a C++ compiler and CMake:
