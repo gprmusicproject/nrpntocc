@@ -1,0 +1,19 @@
+# Output di build (contiene JUCE scaricato e i binari: NON va versionato)
+/build/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# Visual Studio
+.vs/
+*.user
+*.vcxproj.user
+
+# Log generati durante la build
+*_log.txt
+
+# File di sistema
+Thumbs.db
+.DS_Store
