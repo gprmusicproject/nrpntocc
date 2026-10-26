@@ -110,11 +110,28 @@ build\NrpnToCc_artefacts\Release\VST3\NRPN to CC.vst3
 
 ## Installation
 
-The build does **not** copy the plugin automatically. Copy the `NRPN to CC.vst3` folder into one
-of these locations:
+**Easiest — Windows installer:** download `NRPN-to-CC_<version>_Setup.exe` from the
+[Releases](https://github.com/gprmusicproject/nrpntocc/releases) page and run it. It installs the
+VST3 into `Program Files\Common Files\VST3\GPR Music Project`, adds an entry to *Installed apps*,
+and can be removed from Windows Settings → Apps.
+
+**Manual** (if you built from source): the build does **not** copy the plugin automatically. Copy
+the `NRPN to CC.vst3` folder into one of these locations:
 
 - `C:\Program Files\Common Files\VST3`  (all users — requires admin)
 - `%LOCALAPPDATA%\Programs\Common\VST3`  (current user only — no admin)
+
+### Building the installer (optional)
+
+The installer is an [Inno Setup](https://jrsoftware.org/isinfo.php) script in `installer/`. With
+Inno Setup 6 installed, after building the plugin in Release:
+
+```
+ISCC.exe installer\nrpntocc.iss
+```
+
+The resulting `NRPN-to-CC_<version>_Setup.exe` is written to `build\installer\out`. Use
+`/DTestRoot=<folder>` for an admin-free test install into a sandbox folder.
 
 ---
 
@@ -164,6 +181,8 @@ Final flow: `controller → IN track → NRPN to CC → OUT track → instrument
 NrpnToCc/
 ├─ CMakeLists.txt          # VST3-only build, downloads JUCE via FetchContent
 ├─ LICENSE                 # GNU GPL v3
+├─ installer/
+│  └─ nrpntocc.iss         # Inno Setup script for the Windows installer
 └─ Source/
    ├─ PluginProcessor.h/.cpp   # NRPN -> CC logic
    └─ PluginEditor.h/.cpp      # interface (channels, modes, monitor)
