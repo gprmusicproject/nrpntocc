@@ -1,6 +1,9 @@
 # Output di build (contiene JUCE scaricato e i binari: NON va versionato)
 /build/
 
+# Script dell'installer: resta privato, non si pubblica
+/installer/
+
 # CMake
 CMakeCache.txt
 CMakeFiles/
