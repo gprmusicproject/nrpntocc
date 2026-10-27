@@ -1,21 +1,40 @@
 #include "PluginEditor.h"
+#include "BinaryData.h"
 
 //==============================================================================
 NrpnToCcEditor::NrpnToCcEditor (NrpnToCcProcessor& p)
     : AudioProcessorEditor (&p), proc (p)
 {
-    auto setupLabel = [this] (juce::Label& l, const juce::String& text)
+    // --- Header: GPR music project lockup (symbol, name and claim) ---
+    logo = juce::Drawable::createFromImageData (BinaryData::gprlogohorizontal_svg,
+                                                BinaryData::gprlogohorizontal_svgSize);
+    if (logo != nullptr)
+    {
+        logo->setInterceptsMouseClicks (false, false);
+        addAndMakeVisible (*logo);
+    }
+
+    // Section labels in the site style: mono, uppercase, amber.
+    auto setupSectionTitle = [this] (juce::Label& l, const juce::String& text)
     {
         l.setText (text, juce::dontSendNotification);
-        l.setJustificationType (juce::Justification::centredLeft);
+        l.setFont (brand::monoFont (11.0f).withExtraKerningFactor (0.18f));
+        l.setColour (juce::Label::textColourId, brand::accent);
+        l.setBorderSize ({});
         addAndMakeVisible (l);
     };
 
-    // Titolo
-    titleLabel.setText ("NRPN to CC", juce::dontSendNotification);
-    titleLabel.setFont (juce::Font (juce::FontOptions{}.withHeight (22.0f).withStyle ("Bold")));
-    titleLabel.setJustificationType (juce::Justification::centred);
-    addAndMakeVisible (titleLabel);
+    auto setupLabel = [this] (juce::Label& l, const juce::String& text)
+    {
+        l.setText (text, juce::dontSendNotification);
+        l.setFont (juce::Font (juce::FontOptions{}.withHeight (14.0f)));
+        l.setColour (juce::Label::textColourId, brand::textMuted);
+        l.setJustificationType (juce::Justification::centredLeft);
+        l.setBorderSize ({});
+        addAndMakeVisible (l);
+    };
+
+    setupSectionTitle (settingsTitle, "SETTINGS");
 
     // --- Input channel ---
     setupLabel (inLabel, "Input channel");
@@ -41,19 +60,19 @@ NrpnToCcEditor::NrpnToCcEditor (NrpnToCcProcessor& p)
     // --- Max for "fixed scale" ---
     setupLabel (maxLabel, "Max (fixed scale)");
     inputMaxSlider.setSliderStyle (juce::Slider::IncDecButtons);
-    inputMaxSlider.setTextBoxStyle (juce::Slider::TextBoxLeft, false, 90, 22);
+    inputMaxSlider.setTextBoxStyle (juce::Slider::TextBoxLeft, false, 150, 28);
     inputMaxSlider.setRange (1.0, 16383.0, 1.0);
     addAndMakeVisible (inputMaxSlider);
 
-    // --- Passthrough e filtro ripetizioni ---
+    // --- Pass-through and repeated-CC filter ---
     addAndMakeVisible (passthroughButton);
     addAndMakeVisible (dedupeButton);
 
-    // --- Reset dell'apprendimento auto-range ---
+    // --- Reset of the auto-range learning ---
     resetLearnButton.onClick = [this] { proc.requestResetLearning(); };
     addAndMakeVisible (resetLearnButton);
 
-    // Collegamento parametri <-> controlli
+    // Parameter <-> control attachments
     inAtt     = std::make_unique<ComboAttach>  (proc.apvts, "inputChannel",  inputChannelBox);
     outAtt    = std::make_unique<ComboAttach>  (proc.apvts, "outputChannel", outputChannelBox);
     modeAtt   = std::make_unique<ComboAttach>  (proc.apvts, "valueMode",     valueModeBox);
@@ -61,85 +80,122 @@ NrpnToCcEditor::NrpnToCcEditor (NrpnToCcProcessor& p)
     passAtt   = std::make_unique<ButtonAttach> (proc.apvts, "passthrough",   passthroughButton);
     dedupeAtt = std::make_unique<ButtonAttach> (proc.apvts, "dedupe",        dedupeButton);
 
-    // Nota informativa sul routing delle porte
     infoLabel.setText ("Automatic mapping: NRPN number -> CC number.\n"
                        "Auto-range: learns each parameter's max and scales to 0-127.\n"
                        "Do one full sweep of each knob to calibrate it (it is remembered).",
                        juce::dontSendNotification);
     infoLabel.setJustificationType (juce::Justification::topLeft);
     infoLabel.setFont (juce::Font (juce::FontOptions{}.withHeight (12.0f)));
-    infoLabel.setColour (juce::Label::textColourId, juce::Colours::grey);
+    infoLabel.setColour (juce::Label::textColourId, brand::textFaint);
+    infoLabel.setBorderSize ({});
     addAndMakeVisible (infoLabel);
 
-    // Monitor
-    monitorTitle.setText ("Monitor", juce::dontSendNotification);
-    monitorTitle.setFont (juce::Font (juce::FontOptions{}.withHeight (14.0f).withStyle ("Bold")));
-    addAndMakeVisible (monitorTitle);
+    // --- Monitor ---
+    setupSectionTitle (monitorTitle, "MONITOR");
 
     monitorText.setJustificationType (juce::Justification::topLeft);
-    monitorText.setFont (juce::Font (juce::FontOptions{}.withName (juce::Font::getDefaultMonospacedFontName()).withHeight (13.0f)));
-    monitorText.setColour (juce::Label::backgroundColourId, juce::Colours::black.withAlpha (0.25f));
+    monitorText.setFont (brand::monoFont (13.0f));
+    monitorText.setColour (juce::Label::textColourId, brand::textMuted);
+    monitorText.setBorderSize ({});
     monitorText.setText ("Waiting for NRPN messages...", juce::dontSendNotification);
     addAndMakeVisible (monitorText);
 
     addAndMakeVisible (ccMeter);
 
-    setSize (440, 486);
+    // --- Footer link to the site ---
+    siteLink.setFont (brand::monoFont (12.0f), false, juce::Justification::centredRight);
+    siteLink.setTooltip ("https://www.gprmusic.com");
+    addAndMakeVisible (siteLink);
+
+    // Set last, once every child is attached: the change is passed down to all of
+    // them, so the slider rebuilds its value box with the brand style.
+    setLookAndFeel (&lnf);
+
+    setSize (480, 594);
     startTimerHz (30);
 }
 
 NrpnToCcEditor::~NrpnToCcEditor()
 {
     stopTimer();
+    setLookAndFeel (nullptr);
 }
 
 //==============================================================================
 void NrpnToCcEditor::paint (juce::Graphics& g)
 {
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll (brand::bg);
+
+    // Header band with a hairline under it.
+    g.setColour (brand::surface);
+    g.fillRect (0, 0, getWidth(), headerHeight);
+    g.setColour (brand::line);
+    g.fillRect (0, headerHeight - 1, getWidth(), 1);
+
+    // Product name and version, right-aligned next to the lockup.
+    auto product = productArea;
+    g.setColour (brand::text);
+    g.setFont (juce::Font (juce::FontOptions{}.withHeight (22.0f).withStyle ("Bold")));
+    g.drawText ("NRPN to CC", product.removeFromTop (28), juce::Justification::bottomRight);
+    g.setColour (brand::textFaint);
+    g.setFont (brand::monoFont (12.0f));
+    g.drawText (juce::String ("v") + JucePlugin_VersionString, product, juce::Justification::topRight);
+
+    // Card behind the monitor text.
+    const auto panel = monitorPanel.toFloat().reduced (0.5f);
+    g.setColour (brand::card);
+    g.fillRoundedRectangle (panel, 10.0f);
+    g.setColour (brand::line);
+    g.drawRoundedRectangle (panel, 10.0f, 1.0f);
 }
 
 void NrpnToCcEditor::resized()
 {
-    auto area = getLocalBounds().reduced (14);
+    // --- Header: lockup on the left, product on the right ---
+    const auto header = getLocalBounds().removeFromTop (headerHeight).reduced (20, 0);
+    const auto logoBounds = header.withWidth (270).withSizeKeepingCentre (270, 64);
+    if (logo != nullptr)
+        logo->setTransformToFit (logoBounds.toFloat(),
+                                 juce::RectanglePlacement::xLeft | juce::RectanglePlacement::yMid);
+    productArea = header.withTrimmedLeft (logoBounds.getWidth() + 12).withSizeKeepingCentre (
+                      header.getWidth() - logoBounds.getWidth() - 12, 46);
 
-    titleLabel.setBounds (area.removeFromTop (34));
-    area.removeFromTop (6);
+    // --- Content ---
+    auto area = getLocalBounds().withTrimmedTop (headerHeight).reduced (20, 16);
 
-    auto row = [&area] (int h) { auto r = area.removeFromTop (h); area.removeFromTop (6); return r; };
+    auto row = [&area] (int h, int gapAfter)
+    {
+        auto r = area.removeFromTop (h);
+        area.removeFromTop (gapAfter);
+        return r;
+    };
 
     const int labelW = 150;
 
+    settingsTitle.setBounds (row (16, 8));
+
+    for (auto [label, control] : { std::pair<juce::Component*, juce::Component*> { &inLabel,   &inputChannelBox },
+                                   std::pair<juce::Component*, juce::Component*> { &outLabel,  &outputChannelBox },
+                                   std::pair<juce::Component*, juce::Component*> { &modeLabel, &valueModeBox },
+                                   std::pair<juce::Component*, juce::Component*> { &maxLabel,  &inputMaxSlider } })
     {
-        auto r = row (26);
-        inLabel.setBounds (r.removeFromLeft (labelW));
-        inputChannelBox.setBounds (r);
-    }
-    {
-        auto r = row (26);
-        outLabel.setBounds (r.removeFromLeft (labelW));
-        outputChannelBox.setBounds (r);
-    }
-    {
-        auto r = row (26);
-        modeLabel.setBounds (r.removeFromLeft (labelW));
-        valueModeBox.setBounds (r);
-    }
-    {
-        auto r = row (26);
-        maxLabel.setBounds (r.removeFromLeft (labelW));
-        inputMaxSlider.setBounds (r);
+        auto r = row (28, 8);
+        label->setBounds (r.removeFromLeft (labelW));
+        control->setBounds (r);
     }
 
-    passthroughButton.setBounds (row (26));
-    dedupeButton.setBounds (row (26));
-    resetLearnButton.setBounds (row (26).removeFromLeft (170));
+    passthroughButton.setBounds (row (24, 4));
+    dedupeButton.setBounds (row (24, 6));
+    resetLearnButton.setBounds (row (28, 10).removeFromLeft (150));
 
-    infoLabel.setBounds (row (40));
+    infoLabel.setBounds (row (46, 10));
 
-    monitorTitle.setBounds (row (20));
-    ccMeter.setBounds (row (24));
-    monitorText.setBounds (area);   // resto dello spazio
+    monitorTitle.setBounds (row (16, 8));
+    ccMeter.setBounds (row (22, 8));
+    monitorPanel = row (66, 10);
+    monitorText.setBounds (monitorPanel.reduced (12, 8));
+
+    siteLink.setBounds (area.removeFromTop (18));
 }
 
 //==============================================================================

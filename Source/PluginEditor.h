@@ -2,9 +2,11 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "PluginProcessor.h"
+#include "BrandLookAndFeel.h"
 
 //==============================================================================
-// Barra orizzontale che mostra l'ultimo valore CC inviato (0-127).
+// Pill-shaped bar showing the last CC value sent (0-127). The label is dark
+// where it sits on the amber bar and light on the empty track.
 class CcMeter : public juce::Component
 {
 public:
@@ -15,22 +17,33 @@ public:
 
     void paint (juce::Graphics& g) override
     {
-        auto r = getLocalBounds().toFloat();
+        const auto r = getLocalBounds().toFloat();
+        const float radius = r.getHeight() * 0.5f;
 
-        g.setColour (juce::Colours::black.withAlpha (0.30f));
-        g.fillRoundedRectangle (r, 3.0f);
+        g.setColour (brand::raised);
+        g.fillRoundedRectangle (r, radius);
 
+        juce::Rectangle<float> bar;
         if (value >= 0)
         {
-            const float w = juce::jmax (3.0f, r.getWidth() * (float) value / 127.0f);
-            g.setColour (juce::Colour (0xff4aa3ff));
-            g.fillRoundedRectangle (r.withWidth (w), 3.0f);
+            bar = r.withWidth (juce::jmax (r.getHeight(), r.getWidth() * (float) value / 127.0f));
+            g.setColour (brand::accent);
+            g.fillRoundedRectangle (bar, radius);
         }
 
-        g.setColour (juce::Colours::white.withAlpha (0.9f));
-        g.setFont (juce::Font (juce::FontOptions{}.withHeight (12.0f)));
-        g.drawText (value >= 0 ? "CC out: " + juce::String (value) : juce::String ("CC out: -"),
-                    getLocalBounds(), juce::Justification::centred);
+        const auto label = value >= 0 ? "CC out: " + juce::String (value) : juce::String ("CC out: -");
+        g.setFont (brand::monoFont (12.0f));
+
+        g.setColour (brand::text);
+        g.drawText (label, getLocalBounds(), juce::Justification::centred);
+
+        if (! bar.isEmpty())
+        {
+            juce::Graphics::ScopedSaveState state (g);
+            g.reduceClipRegion (bar.toNearestInt());
+            g.setColour (brand::bg);
+            g.drawText (label, getLocalBounds(), juce::Justification::centred);
+        }
     }
 
 private:
@@ -52,9 +65,15 @@ private:
     void timerCallback() override;
     void updateMonitorText();
 
-    NrpnToCcProcessor& proc;
+    static constexpr int headerHeight = 96;
 
-    juce::Label titleLabel;
+    NrpnToCcProcessor& proc;
+    BrandLookAndFeel   lnf;   // declared first: outlives every component that uses it
+
+    std::unique_ptr<juce::Drawable> logo;   // GPR music project lockup with the claim
+    juce::Rectangle<int> productArea;       // product name + version, right of the logo
+
+    juce::Label settingsTitle;
     juce::Label inLabel, outLabel, modeLabel, maxLabel;
     juce::ComboBox inputChannelBox, outputChannelBox, valueModeBox;
     juce::Slider inputMaxSlider;
@@ -65,7 +84,10 @@ private:
     juce::Label infoLabel;
     juce::Label monitorTitle;
     juce::Label monitorText;
+    juce::Rectangle<int> monitorPanel;      // rounded card behind the monitor text
     CcMeter     ccMeter;
+
+    juce::HyperlinkButton siteLink { "www.gprmusic.com", juce::URL ("https://www.gprmusic.com") };
 
     using ComboAttach  = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
     using ButtonAttach = juce::AudioProcessorValueTreeState::ButtonAttachment;

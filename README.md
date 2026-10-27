@@ -164,9 +164,12 @@ Final flow: `controller → IN track → NRPN to CC → OUT track → instrument
 NrpnToCc/
 ├─ CMakeLists.txt          # VST3-only build, downloads JUCE via FetchContent
 ├─ LICENSE                 # GNU GPL v3
+├─ Resources/
+│  └─ gpr-logo-horizontal.svg  # GPR music project logo, embedded in the GUI
 └─ Source/
    ├─ PluginProcessor.h/.cpp   # NRPN -> CC logic
-   └─ PluginEditor.h/.cpp      # interface (channels, modes, monitor)
+   ├─ PluginEditor.h/.cpp      # interface (channels, modes, monitor)
+   └─ BrandLookAndFeel.h       # GPR music project colours and widget style
 ```
 
 ---
@@ -178,5 +181,8 @@ This project is distributed under the **GNU General Public License v3.0** (see [
 The plugin is built with [JUCE](https://juce.com), used under its **GPLv3** license. As a result
 this project is released as GPLv3 free software. JUCE is **not** included in the repository: it is
 downloaded automatically by CMake (FetchContent) at build time.
+
+The GPR music project name and logo (`Resources/gpr-logo-horizontal.svg`) identify the author and
+are not licensed under the GPL: if you distribute a modified version, remove them.
 
 © GPR Music Project.
