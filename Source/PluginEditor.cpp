@@ -14,6 +14,13 @@ NrpnToCcEditor::NrpnToCcEditor (NrpnToCcProcessor& p)
         addAndMakeVisible (*logo);
     }
 
+    // Manual: amber outline, as the site does for important links.
+    manualButton.getProperties().set ("brandAccent", true);
+    manualButton.setColour (juce::TextButton::textColourOffId, brand::accent);
+    manualButton.setTooltip ("Open the user manual (PDF)");
+    manualButton.onClick = [this] { openManual(); };
+    addAndMakeVisible (manualButton);
+
     // Section labels in the site style: mono, uppercase, amber.
     auto setupSectionTitle = [this] (juce::Label& l, const juce::String& text)
     {
@@ -132,14 +139,13 @@ void NrpnToCcEditor::paint (juce::Graphics& g)
     g.setColour (brand::line);
     g.fillRect (0, headerHeight - 1, getWidth(), 1);
 
-    // Product name and version, right-aligned next to the lockup.
-    auto product = productArea;
+    // Product name, then version and Manual button under it, right-aligned next to the lockup.
     g.setColour (brand::text);
     g.setFont (juce::Font (juce::FontOptions{}.withHeight (22.0f).withStyle ("Bold")));
-    g.drawText ("NRPN to CC", product.removeFromTop (28), juce::Justification::bottomRight);
+    g.drawText ("NRPN to CC", productArea.withHeight (28), juce::Justification::bottomRight);
     g.setColour (brand::textFaint);
     g.setFont (brand::monoFont (12.0f));
-    g.drawText (juce::String ("v") + JucePlugin_VersionString, product, juce::Justification::topRight);
+    g.drawText (juce::String ("v") + JucePlugin_VersionString, versionArea, juce::Justification::centredRight);
 
     // Card behind the monitor text.
     const auto panel = monitorPanel.toFloat().reduced (0.5f);
@@ -158,7 +164,12 @@ void NrpnToCcEditor::resized()
         logo->setTransformToFit (logoBounds.toFloat(),
                                  juce::RectanglePlacement::xLeft | juce::RectanglePlacement::yMid);
     productArea = header.withTrimmedLeft (logoBounds.getWidth() + 12).withSizeKeepingCentre (
-                      header.getWidth() - logoBounds.getWidth() - 12, 46);
+                      header.getWidth() - logoBounds.getWidth() - 12, 56);
+    {
+        auto line = productArea.withTrimmedTop (34);            // under the name
+        manualButton.setBounds (line.removeFromRight (70));
+        versionArea = line.withTrimmedRight (8);
+    }
 
     // --- Content ---
     auto area = getLocalBounds().withTrimmedTop (headerHeight).reduced (20, 16);
@@ -196,6 +207,44 @@ void NrpnToCcEditor::resized()
     monitorText.setBounds (monitorPanel.reduced (12, 8));
 
     siteLink.setBounds (area.removeFromTop (18));
+}
+
+//==============================================================================
+// The user manual is a PDF that the installer puts in the program folder; the plug-in
+// sits in the VST3 folder and nothing is written to the registry, so the places it can be
+// in are tried in turn: next to this binary, then the program folder (as for MTRX-1K).
+void NrpnToCcEditor::openManual()
+{
+    const juce::String name ("NRPN to CC User Manual.pdf");
+    const juce::String folder ("GPR Music Project\\NRPN to CC");
+
+    juce::Array<juce::File> places;
+    places.add (juce::File::getSpecialLocation (juce::File::currentExecutableFile).getSiblingFile (name));
+    for (const char* variable : { "ProgramW6432", "ProgramFiles" })
+    {
+        const auto programs = juce::SystemStats::getEnvironmentVariable (variable, {});
+        if (programs.isNotEmpty())
+            places.addIfNotAlreadyThere (juce::File (programs).getChildFile (folder).getChildFile (name));
+    }
+
+    for (const auto& file : places)
+        if (file.existsAsFile())
+        {
+            file.startAsProcess();
+            return;
+        }
+
+    juce::NativeMessageBox::showAsync (
+        juce::MessageBoxOptions()
+            .withIconType (juce::MessageBoxIconType::InfoIcon)
+            .withTitle ("NRPN to CC")
+            .withMessage ("The user manual was not found.\n\n"
+                          "The installer puts it in\n"
+                          + places.getLast().getFullPathName() + "\n\n"
+                          "Installer and manual: www.gprmusic.com")
+            .withButton ("OK")
+            .withAssociatedComponent (this),
+        [] (int) {});
 }
 
 //==============================================================================

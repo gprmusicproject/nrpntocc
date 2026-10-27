@@ -156,16 +156,18 @@ public:
     }
 
     // Buttons: pill shape, outline that turns amber on hover (site button style).
+    // A button with the property "brandAccent" (important links) is always outlined in amber.
     void drawButtonBackground (juce::Graphics& g, juce::Button& button, const juce::Colour&,
                                bool isHighlighted, bool isDown) override
     {
         const auto r = button.getLocalBounds().toFloat().reduced (0.5f);
         const float radius = r.getHeight() * 0.5f;
+        const bool accent = button.getProperties()["brandAccent"];
 
-        g.setColour (isDown ? brand::raised : brand::card);
+        g.setColour (isDown ? brand::raised : (accent && isHighlighted ? brand::raised : brand::card));
         g.fillRoundedRectangle (r, radius);
 
-        g.setColour (isHighlighted || isDown ? brand::accent : brand::lineStrong);
+        g.setColour (accent || isHighlighted || isDown ? brand::accent : brand::lineStrong);
         g.drawRoundedRectangle (r, radius, 1.0f);
     }
 

@@ -64,6 +64,7 @@ public:
 private:
     void timerCallback() override;
     void updateMonitorText();
+    void openManual();
 
     static constexpr int headerHeight = 96;
 
@@ -72,6 +73,8 @@ private:
 
     std::unique_ptr<juce::Drawable> logo;   // GPR music project lockup with the claim
     juce::Rectangle<int> productArea;       // product name + version, right of the logo
+    juce::Rectangle<int> versionArea;       // version, left of the Manual button
+    juce::TextButton manualButton { "Manual" };
 
     juce::Label settingsTitle;
     juce::Label inLabel, outLabel, modeLabel, maxLabel;
