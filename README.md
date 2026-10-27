@@ -11,6 +11,28 @@ MIDI output.
 > on its output, which you route to a virtual instrument or an external MIDI track. As a bonus,
 > the controller's MIDI port is opened by Cubase, not by the plugin: no port conflict.
 
+## Two ways to get it
+
+| | **Build it yourself** — free | **Install and play** — ready-made package |
+|---|---|---|
+| What you get | The source code in this repository | A Windows installer and the illustrated user manual (PDF) |
+| Installation | Build with free developer tools (see [Building](#building)) and copy the `.vst3` by hand | Setup (English or Italian) puts the plug-in in the right VST3 folder; clean removal from Windows Settings |
+| Documentation | This README | The user manual: installation, Cubase setup step by step, every control, troubleshooting. The **Manual** button of the plug-in opens it |
+| Support | — | By email |
+| Where | Here, on GitHub | [gprmusic.com/product/nrpn-to-cc](https://www.gprmusic.com/product/nrpn-to-cc/) |
+
+**If you don't want to compile the plug-in**, buy the ready-made package:
+
+1. Open the product page: **https://www.gprmusic.com/product/nrpn-to-cc/**
+2. Click **Add to cart**, then go to checkout and pay.
+3. After payment you receive an email with the download links of the installer and of the user
+   manual. The links are valid for **7 days**: download the files and keep a copy.
+4. Unzip the installer, close your DAW and run `NRPN-to-CC_<version>_Setup.exe`, then rescan the
+   VST3 plug-ins in your DAW. The **Manual** button in the plug-in window opens the user manual.
+
+Buying the package also supports the development of new plug-ins. The plug-in itself is the
+same in both cases, and it stays free software under the GPL v3.
+
 ## What it does
 
 - Receives NRPN (CC 99/98 = parameter number, CC 6/38 = value).
@@ -33,6 +55,9 @@ MIDI output.
   - **Filter repeated CC** (default ON): in 7-bit mode, avoids sending consecutive CCs with the
     same value (useful because scaling 0–255 → 0–127 makes many steps map to the same CC).
   - **Monitor**: shows the last NRPN received, the CC sent, and a **bar** of the outgoing CC value.
+  - **Manual**: opens the illustrated user manual that comes with the
+    [installer package](https://www.gprmusic.com/product/nrpn-to-cc/). In a build from source,
+    where the manual is not installed, it says where the manual would be.
 
 > Note on **MIDI ports**: a VST3 plugin inserted in a track does not open hardware ports. The
 > physical port (your MIDI interface) is chosen in the **DAW's track routing**. In the plugin
@@ -64,6 +89,9 @@ instrument, feed it the source MIDI, and route its MIDI output to the target ins
 ---
 
 ## Prerequisites (Windows)
+
+> **Don't want to compile?** The [ready-made package](https://www.gprmusic.com/product/nrpn-to-cc/)
+> has a Windows installer and the user manual: see [Two ways to get it](#two-ways-to-get-it).
 
 You need a C++ compiler and CMake:
 
@@ -109,6 +137,9 @@ build\NrpnToCc_artefacts\Release\VST3\NRPN to CC.vst3
 ---
 
 ## Installation
+
+With the [installer package](https://www.gprmusic.com/product/nrpn-to-cc/), run the Setup and
+you are done. With your own build, read on.
 
 The build does **not** copy the plugin automatically. Copy the `NRPN to CC.vst3` folder into one
 of these locations:
